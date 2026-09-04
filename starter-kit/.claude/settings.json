@@ -1,0 +1,87 @@
+{
+  "_commentaire": "GABARIT — ateliers A1 et A5, depot todo-app/workshop1. Copiez-le dans .claude/settings.json puis adaptez. Les hooks ne servent qu'a partir de l'atelier A5 : retirez le bloc hooks pour l'atelier A1.",
+
+  "permissions": {
+    "allow": [
+      "Read",
+      "Grep",
+      "Glob",
+      "Bash(python -m pytest *)",
+      "Bash(python app.py)",
+      "Bash(ruff *)",
+      "Bash(pip install -r requirements.txt)",
+      "Bash(git diff *)",
+      "Bash(git status)",
+      "Bash(git log *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git checkout *)",
+      "mcp__tickets__read_text_file",
+      "mcp__tickets__list_directory"
+    ],
+    "deny": [
+      "Bash(git push *)",
+      "Bash(git reset --hard *)",
+      "Bash(rm -rf *)",
+      "Bash(chmod 777 *)",
+      "Bash(curl *)",
+      "Bash(wget *)",
+      "Read(.env)",
+      "Read(.env.*)",
+      "Read(secrets/**)",
+      "Read(**/id_rsa*)",
+      "mcp__tickets__write_file",
+      "mcp__tickets__edit_file"
+    ]
+  },
+
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/guard-bash.ps1",
+            "timeout": 15,
+            "statusMessage": "Verification de la politique du depot..."
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/format-python.ps1",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python -m pytest -q -x",
+            "timeout": 90
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/audit.sh",
+            "timeout": 15
+          }
+        ]
+      }
+    ]
+  }
+}

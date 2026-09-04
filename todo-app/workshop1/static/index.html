@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Todo App — Workshop</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="container">
+    <h1>📋 Todo App</h1>
+
+    <form id="new-todo-form">
+      <input type="text" id="new-todo-input" placeholder="Nouvelle tâche..." required>
+      <button type="submit">Ajouter</button>
+    </form>
+
+    <div class="filters">
+      <button class="filter-btn active" data-filter="all">Toutes</button>
+      <button class="filter-btn" data-filter="true">Terminées</button>
+      <button class="filter-btn" data-filter="false">À faire</button>
+    </div>
+
+    <ul id="todo-list"></ul>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>

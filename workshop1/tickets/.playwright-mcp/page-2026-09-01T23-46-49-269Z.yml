@@ -1,0 +1,12 @@
+- main [ref=e2]:
+  - heading "📋 Todo App" [level=1] [ref=e3]
+  - generic [ref=e4]:
+    - textbox "Nouvelle tâche..." [ref=e5]
+    - combobox "Catégorie" [ref=e6] [cursor=pointer]
+    - button "Ajouter" [ref=e7] [cursor=pointer]
+  - generic [ref=e8]:
+    - button "Toutes" [ref=e9] [cursor=pointer]
+    - button "Terminées" [ref=e10] [cursor=pointer]
+    - button "À faire" [ref=e11] [cursor=pointer]
+  - button "Toutes catégories" [ref=e13] [cursor=pointer]
+  - list

@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "tickets": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "D:/Documents/nvidia-courses/agenticAI/todo-app-new-feature/workshop1/tickets"
+      ],
+      "env": {}
+    }
+  }
+}

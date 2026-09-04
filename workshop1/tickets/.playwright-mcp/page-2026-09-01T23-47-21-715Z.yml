@@ -1,0 +1,36 @@
+- main [ref=e2]:
+  - heading "📋 Todo App" [level=1] [ref=e3]
+  - generic [ref=e4]:
+    - textbox "Nouvelle tâche..." [ref=e5]
+    - combobox "Catégorie" [ref=e6] [cursor=pointer]:
+      - option "autre" [selected]
+      - option "travail"
+      - option "perso"
+      - option "urgent"
+    - button "Ajouter" [ref=e7] [cursor=pointer]
+  - generic [ref=e8]:
+    - button "Toutes" [ref=e9] [cursor=pointer]
+    - button "Terminées" [active] [ref=e10] [cursor=pointer]
+    - button "À faire" [ref=e11] [cursor=pointer]
+  - generic [ref=e12]:
+    - button "Toutes catégories" [ref=e13] [cursor=pointer]
+    - button "autre" [ref=e14] [cursor=pointer]
+    - button "travail" [ref=e15] [cursor=pointer]
+    - button "perso" [ref=e16] [cursor=pointer]
+    - button "urgent" [ref=e17] [cursor=pointer]
+  - list [ref=e18]:
+    - listitem [ref=e89]:
+      - checkbox [checked] [ref=e90]
+      - generic [ref=e91]: Préparer le workshop
+      - generic [ref=e92]: travail
+      - button "✕" [ref=e93] [cursor=pointer]
+    - listitem [ref=e94]:
+      - checkbox [checked] [ref=e95]
+      - generic [ref=e96]: Boire un café
+      - generic [ref=e97]: perso
+      - button "✕" [ref=e98] [cursor=pointer]
+    - listitem [ref=e99]:
+      - checkbox [checked] [ref=e100]
+      - generic [ref=e101]: test depuis MCP
+      - generic [ref=e102]: autre
+      - button "✕" [ref=e103] [cursor=pointer]

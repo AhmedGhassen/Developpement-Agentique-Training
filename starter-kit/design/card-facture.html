@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<!--
+  MAQUETTE DE RÉFÉRENCE — atelier A8, plan B sans Figma.
+
+  Ouvrir dans un navigateur : c'est la « maquette » que les participants doivent
+  spécifier puis réimplémenter dans leur propre système de composants.
+
+  Le fichier est volontairement autonome et lisible : les valeurs sont exprimées
+  en variables CSS, ce qui permet à l'agent d'extraire des tokens plutôt que des
+  pixels bruts — c'est tout l'enjeu de l'étape 2 de l'atelier.
+
+  NE PAS distribuer specs-reference/card.md aux participants avant l'étape 4 :
+  ils doivent produire leur propre spécification d'abord.
+-->
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Maquette — Card facture</title>
+<style>
+  :root {
+    /* Couleurs */
+    --color-surface:        #FFFFFF;
+    --color-surface-subtle: #F4F6FA;
+    --color-border:         #DDE2EB;
+    --color-text:           #121826;
+    --color-text-muted:     #4A5468;
+    --color-accent:         #2F81F7;
+    --color-success:        #1F935E;
+    --color-warning:        #C27A0A;
+    --color-danger:         #C0393C;
+
+    /* Espacements */
+    --spacing-xs:  4px;
+    --spacing-sm:  8px;
+    --spacing-md:  16px;
+    --spacing-lg:  24px;
+
+    /* Typographie */
+    --font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    --font-size-caption: 12px;
+    --font-size-body:    14px;
+    --font-size-title:   16px;
+    --font-size-amount:  24px;
+    --font-weight-regular: 400;
+    --font-weight-medium:  500;
+    --font-weight-bold:    700;
+    --line-height-tight: 1.25;
+    --line-height-body:  1.5;
+
+    /* Formes */
+    --radius-md: 8px;
+    --radius-pill: 999px;
+    --border-width: 1px;
+    --shadow-hover: 0 2px 8px rgba(18, 24, 38, 0.08);
+
+    /* Mouvement */
+    --duration-fast: 150ms;
+    --easing-standard: cubic-bezier(0.2, 0, 0.2, 1);
+  }
+
+  body {
+    font-family: var(--font-family);
+    background: var(--color-surface-subtle);
+    margin: 0;
+    padding: 48px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 32px;
+    align-items: flex-start;
+  }
+
+  .state-label {
+    font-size: var(--font-size-caption);
+    font-weight: var(--font-weight-bold);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    margin-bottom: var(--spacing-sm);
+  }
+
+  /* ---- Composant Card ---- */
+
+  .card {
+    box-sizing: border-box;
+    width: 320px;
+    background: var(--color-surface);
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    transition: box-shadow var(--duration-fast) var(--easing-standard),
+                border-color var(--duration-fast) var(--easing-standard);
+  }
+
+  .card__header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--spacing-sm);
+  }
+
+  .card__reference {
+    font-size: var(--font-size-title);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-tight);
+    color: var(--color-text);
+  }
+
+  .card__badge {
+    flex: none;
+    font-size: var(--font-size-caption);
+    font-weight: var(--font-weight-medium);
+    line-height: 1;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--radius-pill);
+    color: var(--color-surface);
+    background: var(--color-success);
+  }
+  .card__badge--pending { background: var(--color-warning); }
+  .card__badge--overdue { background: var(--color-danger); }
+
+  .card__client {
+    font-size: var(--font-size-body);
+    line-height: var(--line-height-body);
+    color: var(--color-text-muted);
+  }
+
+  .card__amount {
+    font-size: var(--font-size-amount);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-tight);
+    color: var(--color-text);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .card__footer {
+    display: flex;
+    justify-content: space-between;
+    font-size: var(--font-size-caption);
+    line-height: var(--line-height-body);
+    color: var(--color-text-muted);
+    padding-top: var(--spacing-sm);
+    border-top: var(--border-width) solid var(--color-border);
+  }
+
+  /* État hover */
+  .card--hover,
+  .card:hover {
+    border-color: var(--color-accent);
+    box-shadow: var(--shadow-hover);
+    cursor: pointer;
+  }
+
+  /* État disabled : opacité, pas de changement de couleur */
+  .card--disabled {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  /* Responsive : sous 360px, la carte occupe la largeur disponible
+     et le montant passe sous le bloc client. */
+  @media (max-width: 360px) {
+    .card { width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+  <div>
+    <div class="state-label">default</div>
+    <div class="card">
+      <div class="card__header">
+        <span class="card__reference">FAC-2026-0412</span>
+        <span class="card__badge">Payée</span>
+      </div>
+      <div class="card__client">Ateliers Rivoli SAS</div>
+      <div class="card__amount">1 248,50 €</div>
+      <div class="card__footer">
+        <span>Émise le 12/02/2026</span>
+        <span>Échéance 14/03/2026</span>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <div class="state-label">hover</div>
+    <div class="card card--hover">
+      <div class="card__header">
+        <span class="card__reference">FAC-2026-0413</span>
+        <span class="card__badge card__badge--pending">En attente</span>
+      </div>
+      <div class="card__client">Menuiserie Delmas</div>
+      <div class="card__amount">640,00 €</div>
+      <div class="card__footer">
+        <span>Émise le 18/02/2026</span>
+        <span>Échéance 20/03/2026</span>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <div class="state-label">disabled</div>
+    <div class="card card--disabled">
+      <div class="card__header">
+        <span class="card__reference">FAC-2026-0388</span>
+        <span class="card__badge card__badge--overdue">En retard</span>
+      </div>
+      <div class="card__client">Groupe Lantier</div>
+      <div class="card__amount">3 090,75 €</div>
+      <div class="card__footer">
+        <span>Émise le 04/01/2026</span>
+        <span>Échéance 03/02/2026</span>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

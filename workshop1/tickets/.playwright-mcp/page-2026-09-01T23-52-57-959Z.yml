@@ -1,0 +1,41 @@
+- main [ref=f1e2]:
+  - heading "📋 Todo App" [level=1] [ref=f1e3]
+  - generic [ref=f1e4]:
+    - textbox "Nouvelle tâche..." [ref=f1e5]
+    - combobox "Catégorie" [ref=f1e6] [cursor=pointer]:
+      - option "autre" [selected]
+      - option "travail"
+      - option "perso"
+      - option "urgent"
+    - button "Ajouter" [ref=f1e7] [cursor=pointer]
+  - generic [ref=f1e8]:
+    - button "Toutes" [ref=f1e9] [cursor=pointer]
+    - button "Terminées" [ref=f1e10] [cursor=pointer]
+    - button "À faire" [ref=f1e11] [cursor=pointer]
+  - generic [ref=f1e12]:
+    - button "Toutes catégories" [ref=f1e13] [cursor=pointer]
+    - button "autre" [ref=f1e14] [cursor=pointer]
+    - button "travail" [ref=f1e15] [cursor=pointer]
+    - button "perso" [ref=f1e16] [cursor=pointer]
+    - button "urgent" [ref=f1e17] [cursor=pointer]
+  - list [ref=f1e18]:
+    - listitem [ref=f1e44]:
+      - checkbox [checked] [ref=f1e45]
+      - generic [ref=f1e46]: Préparer le workshop
+      - generic [ref=f1e47]: travail
+      - button "✕" [ref=f1e48] [cursor=pointer]
+    - listitem [ref=f1e49]:
+      - checkbox [ref=f1e50]
+      - generic [ref=f1e51]: Relire le ticket JIRA-142
+      - generic [ref=f1e52]: travail
+      - button "✕" [ref=f1e53] [cursor=pointer]
+    - listitem [ref=f1e54]:
+      - checkbox [ref=f1e55]
+      - generic [ref=f1e56]: Configurer Claude Code
+      - generic [ref=f1e57]: urgent
+      - button "✕" [ref=f1e58] [cursor=pointer]
+    - listitem [ref=f1e59]:
+      - checkbox [checked] [ref=f1e60]
+      - generic [ref=f1e61]: Boire un café
+      - generic [ref=f1e62]: perso
+      - button "✕" [ref=f1e63] [cursor=pointer]

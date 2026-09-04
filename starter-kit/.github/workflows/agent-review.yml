@@ -1,0 +1,83 @@
+# GABARIT — capstone et module 11.
+#
+# Principe non négociable de ce fichier : les tests sont BLOQUANTS, la revue par
+# agent et les évaluations non déterministes ne le sont PAS. Un gate dur sur un
+# taux variable produit une CI que l'équipe contourne.
+
+name: Vérification agentique
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  tests:
+    name: Tests (bloquant)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e ".[dev]"
+      - run: ruff check .
+      - run: pytest -q -m "not eval and not llm"
+
+  revue-agent:
+    name: Revue par agent (informatif)
+    needs: tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Revue ciblée du diff
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic-api-key: ${{ secrets.ANTHROPIC_API_KEY }}
+          # Un seul axe par revue. Une revue générique produit trente
+          # commentaires cosmétiques et se fait désactiver en deux semaines.
+          prompt: |
+            Revois le diff de cette pull request sur un seul axe : les
+            régressions de sécurité et les ruptures d'API publique.
+
+            Ignore le style, le nommage et la lisibilité.
+
+            Pour chaque constat : fichier:ligne, sévérité (bloquant / majeur /
+            mineur), et correction proposée en une phrase.
+
+            S'il n'y a aucun constat, écris exactement :
+            « Aucun constat sur les axes sécurité et compatibilité. »
+
+            Poste un unique commentaire de synthèse.
+          allowed-tools: "Read,Grep,Glob,Bash(git diff),Bash(git log)"
+          claude_args: "--max-turns 12"
+
+  evaluations:
+    name: Évaluations (non bloquant)
+    needs: tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -e ".[dev]"
+      # Taux de réussite sur un jeu de cas. Mesuré et publié, jamais bloquant :
+      # c'est une tendance à suivre, pas un critère de merge.
+      - run: pytest -q -m eval --junitxml=eval-results.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: resultats-evaluations
+          path: eval-results.xml

@@ -1,0 +1,40 @@
+{
+  "_commentaire": "GABARIT — atelier A4. Fichier VERSIONNÉ : aucun secret ici. Les jetons passent par variable d'environnement ou par le flux OAuth du serveur. Retirez les serveurs dont vous n'avez pas besoin : chaque serveur actif coûte du contexte à chaque tour, avant votre premier mot.",
+
+  "mcpServers": {
+    "tickets": {
+      "_usage": "Option B de l'atelier A4, RECOMMANDÉE : lit les tickets du dossier tickets/. Aucun réseau, aucun accès d'entreprise, marche partout.",
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "${CLAUDE_PROJECT_DIR}/tickets"
+      ]
+    },
+
+    "playwright": {
+      "_usage": "Option C de l'atelier A4 et outil recommandé pour A8 : navigateur isolé sur l'app qui tourne en local. Aucun accès d'entreprise requis.",
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp@latest"]
+    },
+
+    "gitlab": {
+      "_usage": "Option A de l'atelier A4 : lecture des tickets et merge requests. Authentification OAuth au premier appel — claude mcp login gitlab.",
+      "type": "http",
+      "url": "https://gitlab.example.com/api/v4/mcp"
+    },
+
+    "jira": {
+      "_usage": "Variante stdio. L'URL de base et le jeton viennent de l'environnement, jamais d'un littéral dans ce fichier.",
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@company/jira-mcp"],
+      "env": {
+        "JIRA_BASE_URL": "${JIRA_BASE_URL}",
+        "JIRA_TOKEN": "${JIRA_TOKEN}"
+      }
+    }
+  }
+}
