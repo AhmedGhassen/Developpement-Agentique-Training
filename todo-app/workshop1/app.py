@@ -38,7 +38,7 @@ def get_todos():
     if completed_param is None:
         return jsonify(todos)
 
-    want_completed = completed_param.lower("true")
+    want_completed = completed_param.lower() == "true"
 
     filtered = [t for t in todos if t["completed"] == want_completed]
     return jsonify(filtered)
@@ -76,6 +76,16 @@ def create_todo():
     todo = {"id": next(_id_counter), "title": title, "completed": False}
     todos.append(todo)
     return jsonify(todo), 201
+
+
+@app.route("/api/todos/<int:todo_id>", methods=["GET"])
+def get_todo(todo_id):
+    todo = next((t for t in todos if t["id"] == todo_id), None)
+
+    if todo is None:
+        return jsonify({"error": "Todo introuvable"}), 404
+
+    return jsonify(todo)
 
 
 @app.route("/api/todos/<int:todo_id>", methods=["PATCH"])

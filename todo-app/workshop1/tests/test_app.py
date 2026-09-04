@@ -50,6 +50,22 @@ def test_create_todo_without_title_fails(client):
     assert res.status_code == 400
 
 
+def test_get_todo_returns_matching_todo(client):
+    todo = client.get("/api/todos").get_json()[0]
+
+    res = client.get(f"/api/todos/{todo['id']}")
+
+    assert res.status_code == 200
+    assert res.get_json() == todo
+
+
+def test_get_todo_returns_404_when_missing(client):
+    res = client.get("/api/todos/999999")
+
+    assert res.status_code == 404
+    assert res.get_json() == {"error": "Todo introuvable"}
+
+
 def test_filter_completed_true_returns_only_completed(client):
     """
     GET /api/todos?completed=true doit renvoyer UNIQUEMENT

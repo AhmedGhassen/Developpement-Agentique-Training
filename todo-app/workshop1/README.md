@@ -42,5 +42,6 @@ todo-app/
 |---------|---------------------|---------------------------------------|
 | GET     | /api/todos           | Liste des todos (filtre `?completed=`)|
 | POST    | /api/todos           | Créer une todo (`{"title": "..."}`)   |
+| GET     | /api/todos/<id>      | Récupérer une todo                   |
 | PATCH   | /api/todos/<id>      | Modifier une todo                     |
 | DELETE  | /api/todos/<id>      | Supprimer une todo                    |
