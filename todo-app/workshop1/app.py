@@ -6,8 +6,9 @@ Ce fichier contient volontairement UN BUG pour les besoins du workshop.
 Ne pas corriger avant l'exercice !
 """
 
-from flask import Flask, jsonify, request, send_from_directory
 from itertools import count
+
+from flask import Flask, jsonify, request, send_from_directory
 
 app = Flask(__name__, static_folder="static", static_url_path="")
 
@@ -81,6 +82,12 @@ def get_todos():
     return jsonify(filtered)
 
 
+def count_by_status(todos):
+    completed = sum(1 for t in todos if t["completed"] == True)
+    pending = sum(1 for t in todos if t["completed"] == False)
+    return {"completed": completed, "pending": pending}
+
+
 @app.route("/api/stats", methods=["GET"])
 def get_stats():
     """
@@ -112,7 +119,9 @@ def create_todo():
     if not title:
         return jsonify({"error": "Le champ 'title' est requis"}), 400
     if not isinstance(category, str) or category not in VALID_CATEGORIES:
-        return jsonify({"error": "La catégorie doit être travail, perso ou urgent"}), 400
+        return jsonify(
+            {"error": "La catégorie doit être travail, perso ou urgent"}
+        ), 400
     if not isinstance(priority, str) or priority not in VALID_PRIORITIES:
         return jsonify({"error": "Invalid priority"}), 400
 
