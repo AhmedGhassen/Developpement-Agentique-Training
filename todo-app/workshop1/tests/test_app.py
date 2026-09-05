@@ -198,6 +198,106 @@ def test_toggle_todo(client):
     assert patch_res.get_json()["completed"] is True
 
 
+def test_create_todo_defaults_priority_to_normal(client):
+    res = client.post("/api/todos", json={"title": "Sans priorité"})
+    assert res.status_code == 201
+    assert res.get_json()["priority"] == "normal"
+
+
+def test_create_todo_with_invalid_priority_fails(client):
+    res = client.post(
+        "/api/todos", json={"title": "Mauvaise priorité", "priority": "urgent"}
+    )
+    assert res.status_code == 400
+    assert res.get_json() == {"error": "Invalid priority"}
+
+
+def test_create_todo_with_valid_priority(client):
+    res = client.post(
+        "/api/todos", json={"title": "Tâche prioritaire", "priority": "high"}
+    )
+    assert res.status_code == 201
+    assert res.get_json()["priority"] == "high"
+
+
+def test_patch_accepts_valid_priority(client):
+    create_res = client.post("/api/todos", json={"title": "À prioriser"})
+    todo_id = create_res.get_json()["id"]
+
+    res = client.patch(f"/api/todos/{todo_id}", json={"priority": "low"})
+    assert res.status_code == 200
+    assert res.get_json()["priority"] == "low"
+
+
+def test_patch_rejects_invalid_priority(client):
+    create_res = client.post("/api/todos", json={"title": "À ne pas casser"})
+    todo_id = create_res.get_json()["id"]
+
+    res = client.patch(f"/api/todos/{todo_id}", json={"priority": "urgent"})
+    assert res.status_code == 400
+    assert res.get_json() == {"error": "Invalid priority"}
+
+    # La tâche ne doit pas avoir été modifiée par une valeur invalide.
+    unchanged = client.get(f"/api/todos/{todo_id}").get_json()
+    assert unchanged["priority"] == "normal"
+
+
+def test_filter_priority_returns_only_matching(client):
+    client.post("/api/todos", json={"title": "Haute prio", "priority": "high"})
+
+    res = client.get("/api/todos?priority=high")
+    assert res.status_code == 200
+    body = res.get_json()
+
+    assert len(body) > 0
+    for todo in body:
+        assert todo["priority"] == "high"
+
+
+def test_filter_priority_and_completed_combined(client):
+    """
+    ?priority=high&completed=false doit renvoyer l'intersection des deux
+    filtres, pas juste l'un ou l'autre.
+    """
+    create_res = client.post(
+        "/api/todos", json={"title": "Haute prio non terminée", "priority": "high"}
+    )
+    todo_id = create_res.get_json()["id"]
+
+    done_res = client.post(
+        "/api/todos", json={"title": "Haute prio terminée", "priority": "high"}
+    )
+    done_id = done_res.get_json()["id"]
+    client.patch(f"/api/todos/{done_id}", json={"completed": True})
+
+    res = client.get("/api/todos?priority=high&completed=false")
+    assert res.status_code == 200
+    body = res.get_json()
+
+    ids = [t["id"] for t in body]
+    assert todo_id in ids
+    assert done_id not in ids
+    for todo in body:
+        assert todo["priority"] == "high"
+        assert todo["completed"] is False
+
+
+def test_priority_present_in_all_todo_responses(client):
+    create_res = client.post("/api/todos", json={"title": "Champ priority"})
+    assert "priority" in create_res.get_json()
+
+    todo_id = create_res.get_json()["id"]
+
+    get_res = client.get(f"/api/todos/{todo_id}")
+    assert "priority" in get_res.get_json()
+
+    patch_res = client.patch(f"/api/todos/{todo_id}", json={"completed": True})
+    assert "priority" in patch_res.get_json()
+
+    for todo in client.get("/api/todos").get_json():
+        assert "priority" in todo
+
+
 def test_delete_todo(client):
     create_res = client.post("/api/todos", json={"title": "À supprimer"})
     todo_id = create_res.get_json()["id"]

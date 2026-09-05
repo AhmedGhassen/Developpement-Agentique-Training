@@ -13,6 +13,7 @@ app = Flask(__name__, static_folder="static", static_url_path="")
 
 _id_counter = count(1)
 VALID_CATEGORIES = {"travail", "perso", "urgent"}
+VALID_PRIORITIES = {"low", "normal", "high"}
 
 # Petit jeu de données en mémoire (pas de vraie base pour rester simple)
 todos = [
@@ -21,24 +22,28 @@ todos = [
         "title": "Préparer le workshop",
         "completed": True,
         "category": "travail",
+        "priority": "normal",
     },
     {
         "id": next(_id_counter),
         "title": "Relire le ticket JIRA-142",
         "completed": False,
         "category": "travail",
+        "priority": "normal",
     },
     {
         "id": next(_id_counter),
         "title": "Configurer Claude Code",
         "completed": False,
         "category": "urgent",
+        "priority": "normal",
     },
     {
         "id": next(_id_counter),
         "title": "Boire un café",
         "completed": True,
         "category": "perso",
+        "priority": "normal",
     },
 ]
 
@@ -52,12 +57,14 @@ def index():
 def get_todos():
     """
     Retourne la liste des todos.
-    Supporte les filtres optionnels ?completed=true|false et ?category=...
+    Supporte les filtres optionnels ?completed=true|false, ?category=...
+    et ?priority=low|normal|high.
     """
     completed_param = request.args.get("completed")
     category_param = request.args.get("category")
+    priority_param = request.args.get("priority")
 
-    if completed_param is None and category_param is None:
+    if completed_param is None and category_param is None and priority_param is None:
         return jsonify(todos)
 
     filtered = todos
@@ -67,6 +74,9 @@ def get_todos():
 
     if category_param is not None:
         filtered = [t for t in filtered if t.get("category") == category_param]
+
+    if priority_param is not None:
+        filtered = [t for t in filtered if t.get("priority") == priority_param]
 
     return jsonify(filtered)
 
@@ -97,17 +107,21 @@ def create_todo():
     data = request.get_json(silent=True) or {}
     title = data.get("title", "").strip()
     category = data.get("category", "perso")
+    priority = data.get("priority", "normal")
 
     if not title:
         return jsonify({"error": "Le champ 'title' est requis"}), 400
     if not isinstance(category, str) or category not in VALID_CATEGORIES:
         return jsonify({"error": "La catégorie doit être travail, perso ou urgent"}), 400
+    if not isinstance(priority, str) or priority not in VALID_PRIORITIES:
+        return jsonify({"error": "Invalid priority"}), 400
 
     todo = {
         "id": next(_id_counter),
         "title": title,
         "completed": False,
         "category": category,
+        "priority": priority,
     }
     todos.append(todo)
     return jsonify(todo), 201
@@ -144,6 +158,13 @@ def update_todo(todo_id):
                 {"error": "La catégorie doit être travail, perso ou urgent"}
             ), 400
         todo["category"] = data["category"]
+    if "priority" in data:
+        if (
+            not isinstance(data["priority"], str)
+            or data["priority"] not in VALID_PRIORITIES
+        ):
+            return jsonify({"error": "Invalid priority"}), 400
+        todo["priority"] = data["priority"]
 
     return jsonify(todo)
 
