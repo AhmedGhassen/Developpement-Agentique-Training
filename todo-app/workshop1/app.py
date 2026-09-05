@@ -12,13 +12,34 @@ from itertools import count
 app = Flask(__name__, static_folder="static", static_url_path="")
 
 _id_counter = count(1)
+VALID_CATEGORIES = {"travail", "perso", "urgent"}
 
 # Petit jeu de données en mémoire (pas de vraie base pour rester simple)
 todos = [
-    {"id": next(_id_counter), "title": "Préparer le workshop", "completed": True},
-    {"id": next(_id_counter), "title": "Relire le ticket JIRA-142", "completed": False},
-    {"id": next(_id_counter), "title": "Configurer Claude Code", "completed": False},
-    {"id": next(_id_counter), "title": "Boire un café", "completed": True},
+    {
+        "id": next(_id_counter),
+        "title": "Préparer le workshop",
+        "completed": True,
+        "category": "travail",
+    },
+    {
+        "id": next(_id_counter),
+        "title": "Relire le ticket JIRA-142",
+        "completed": False,
+        "category": "travail",
+    },
+    {
+        "id": next(_id_counter),
+        "title": "Configurer Claude Code",
+        "completed": False,
+        "category": "urgent",
+    },
+    {
+        "id": next(_id_counter),
+        "title": "Boire un café",
+        "completed": True,
+        "category": "perso",
+    },
 ]
 
 
@@ -31,16 +52,22 @@ def index():
 def get_todos():
     """
     Retourne la liste des todos.
-    Supporte un filtre optionnel ?completed=true|false
+    Supporte les filtres optionnels ?completed=true|false et ?category=...
     """
     completed_param = request.args.get("completed")
+    category_param = request.args.get("category")
 
-    if completed_param is None:
+    if completed_param is None and category_param is None:
         return jsonify(todos)
 
-    want_completed = completed_param.lower() == "true"
+    filtered = todos
+    if completed_param is not None:
+        want_completed = completed_param.lower() == "true"
+        filtered = [t for t in filtered if t["completed"] == want_completed]
 
-    filtered = [t for t in todos if t["completed"] == want_completed]
+    if category_param is not None:
+        filtered = [t for t in filtered if t.get("category") == category_param]
+
     return jsonify(filtered)
 
 
@@ -69,11 +96,19 @@ def get_stats():
 def create_todo():
     data = request.get_json(silent=True) or {}
     title = data.get("title", "").strip()
+    category = data.get("category", "perso")
 
     if not title:
         return jsonify({"error": "Le champ 'title' est requis"}), 400
+    if not isinstance(category, str) or category not in VALID_CATEGORIES:
+        return jsonify({"error": "La catégorie doit être travail, perso ou urgent"}), 400
 
-    todo = {"id": next(_id_counter), "title": title, "completed": False}
+    todo = {
+        "id": next(_id_counter),
+        "title": title,
+        "completed": False,
+        "category": category,
+    }
     todos.append(todo)
     return jsonify(todo), 201
 
@@ -100,6 +135,15 @@ def update_todo(todo_id):
         todo["completed"] = bool(data["completed"])
     if "title" in data:
         todo["title"] = data["title"]
+    if "category" in data:
+        if (
+            not isinstance(data["category"], str)
+            or data["category"] not in VALID_CATEGORIES
+        ):
+            return jsonify(
+                {"error": "La catégorie doit être travail, perso ou urgent"}
+            ), 400
+        todo["category"] = data["category"]
 
     return jsonify(todo)
 

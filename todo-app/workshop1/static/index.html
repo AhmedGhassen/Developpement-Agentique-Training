@@ -10,15 +10,31 @@
     <h1>📋 Todo App</h1>
 
     <form id="new-todo-form">
+      <label for="new-todo-input">Tâche</label>
       <input type="text" id="new-todo-input" placeholder="Nouvelle tâche..." required>
+      <label for="new-todo-category">Catégorie</label>
+      <select id="new-todo-category">
+        <option value="perso">Perso</option>
+        <option value="travail">Travail</option>
+        <option value="urgent">Urgent</option>
+      </select>
       <button type="submit">Ajouter</button>
     </form>
 
-    <div class="filters">
-      <button class="filter-btn active" data-filter="all">Toutes</button>
-      <button class="filter-btn" data-filter="true">Terminées</button>
-      <button class="filter-btn" data-filter="false">À faire</button>
-    </div>
+    <fieldset class="filters">
+      <legend>État</legend>
+      <button type="button" class="filter-btn active" data-filter-group="completed" data-filter="all" aria-pressed="true">Toutes</button>
+      <button type="button" class="filter-btn" data-filter-group="completed" data-filter="true" aria-pressed="false">Terminées</button>
+      <button type="button" class="filter-btn" data-filter-group="completed" data-filter="false" aria-pressed="false">À faire</button>
+    </fieldset>
+
+    <fieldset class="filters">
+      <legend>Catégorie</legend>
+      <button type="button" class="filter-btn active" data-filter-group="category" data-filter="all" aria-pressed="true">Toutes</button>
+      <button type="button" class="filter-btn" data-filter-group="category" data-filter="travail" aria-pressed="false">Travail</button>
+      <button type="button" class="filter-btn" data-filter-group="category" data-filter="perso" aria-pressed="false">Perso</button>
+      <button type="button" class="filter-btn" data-filter-group="category" data-filter="urgent" aria-pressed="false">Urgent</button>
+    </fieldset>
 
     <ul id="todo-list"></ul>
   </main>

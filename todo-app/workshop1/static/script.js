@@ -1,14 +1,20 @@
 const listEl = document.getElementById("todo-list");
 const formEl = document.getElementById("new-todo-form");
 const inputEl = document.getElementById("new-todo-input");
+const categoryEl = document.getElementById("new-todo-category");
 const filterButtons = document.querySelectorAll(".filter-btn");
 
-let currentFilter = "all";
+const filters = {
+  completed: "all",
+  category: "all",
+};
 
 async function fetchTodos() {
-  const url = currentFilter === "all"
-    ? "/api/todos"
-    : `/api/todos?completed=${currentFilter}`;
+  const params = new URLSearchParams();
+  if (filters.completed !== "all") params.set("completed", filters.completed);
+  if (filters.category !== "all") params.set("category", filters.category);
+  const query = params.toString();
+  const url = query ? `/api/todos?${query}` : "/api/todos";
 
   const res = await fetch(url);
   const todos = await res.json();
@@ -24,17 +30,24 @@ function renderTodos(todos) {
     const checkbox = document.createElement("input");
     checkbox.type = "checkbox";
     checkbox.checked = todo.completed;
+    checkbox.setAttribute("aria-label", `Marquer ${todo.title} comme terminée`);
     checkbox.addEventListener("change", () => toggleTodo(todo.id, checkbox.checked));
 
     const span = document.createElement("span");
     span.textContent = todo.title;
 
+    const category = document.createElement("small");
+    category.className = `todo-category category-${todo.category}`;
+    category.textContent = todo.category;
+
     const deleteBtn = document.createElement("button");
     deleteBtn.className = "delete-btn";
     deleteBtn.textContent = "✕";
+    deleteBtn.type = "button";
+    deleteBtn.setAttribute("aria-label", `Supprimer ${todo.title}`);
     deleteBtn.addEventListener("click", () => deleteTodo(todo.id));
 
-    li.append(checkbox, span, deleteBtn);
+    li.append(checkbox, span, category, deleteBtn);
     listEl.appendChild(li);
   });
 }
@@ -61,7 +74,7 @@ formEl.addEventListener("submit", async (e) => {
   await fetch("/api/todos", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ title }),
+    body: JSON.stringify({ title, category: categoryEl.value }),
   });
 
   inputEl.value = "";
@@ -70,9 +83,16 @@ formEl.addEventListener("submit", async (e) => {
 
 filterButtons.forEach((btn) => {
   btn.addEventListener("click", () => {
-    filterButtons.forEach((b) => b.classList.remove("active"));
+    const group = btn.dataset.filterGroup;
+    document
+      .querySelectorAll(`.filter-btn[data-filter-group="${group}"]`)
+      .forEach((b) => {
+        b.classList.remove("active");
+        b.setAttribute("aria-pressed", "false");
+      });
     btn.classList.add("active");
-    currentFilter = btn.dataset.filter;
+    btn.setAttribute("aria-pressed", "true");
+    filters[group] = btn.dataset.filter;
     fetchTodos();
   });
 });
