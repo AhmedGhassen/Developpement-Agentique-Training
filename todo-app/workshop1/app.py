@@ -56,16 +56,32 @@ def index():
 @app.route("/api/todos", methods=["GET"])
 def get_todos():
     """
-    Retourne la liste des todos.
+    Retourne la liste des todos, paginée.
     Supporte les filtres optionnels ?completed=true|false, ?category=...
-    et ?priority=low|normal|high.
+    et ?priority=low|normal|high, ainsi que ?limit= et ?offset=.
+
+    Réponse : {"items": [...], "total": N, "next_offset": N ou null}
+    où total est le nombre de tâches après filtrage, avant pagination.
     """
     completed_param = request.args.get("completed")
     category_param = request.args.get("category")
     priority_param = request.args.get("priority")
+    limit_param = request.args.get("limit")
+    offset_param = request.args.get("offset")
 
-    if completed_param is None and category_param is None and priority_param is None:
-        return jsonify(todos)
+    try:
+        limit = int(limit_param) if limit_param is not None else 50
+    except ValueError:
+        return jsonify({"error": "'limit' doit être un entier"}), 400
+    if limit < 1 or limit > 200:
+        return jsonify({"error": "'limit' doit être compris entre 1 et 200"}), 400
+
+    try:
+        offset = int(offset_param) if offset_param is not None else 0
+    except ValueError:
+        return jsonify({"error": "'offset' doit être un entier"}), 400
+    if offset < 0:
+        return jsonify({"error": "'offset' ne peut pas être négatif"}), 400
 
     filtered = todos
     if completed_param is not None:
@@ -78,7 +94,11 @@ def get_todos():
     if priority_param is not None:
         filtered = [t for t in filtered if t.get("priority") == priority_param]
 
-    return jsonify(filtered)
+    total = len(filtered)
+    page = filtered[offset : offset + limit]
+    next_offset = offset + limit if offset + limit < total else None
+
+    return jsonify({"items": page, "total": total, "next_offset": next_offset})
 
 
 @app.route("/api/stats", methods=["GET"])

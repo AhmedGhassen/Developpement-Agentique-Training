@@ -34,7 +34,7 @@ def client():
 def test_get_all_todos(client):
     res = client.get("/api/todos")
     assert res.status_code == 200
-    assert len(res.get_json()) >= 1
+    assert len(res.get_json()["items"]) >= 1
 
 
 def test_create_todo(client):
@@ -51,7 +51,7 @@ def test_create_todo_without_title_fails(client):
 
 
 def test_get_todo_returns_matching_todo(client):
-    todo = client.get("/api/todos").get_json()[0]
+    todo = client.get("/api/todos").get_json()["items"][0]
 
     res = client.get(f"/api/todos/{todo['id']}")
 
@@ -73,7 +73,7 @@ def test_filter_completed_true_returns_only_completed(client):
     """
     res = client.get("/api/todos?completed=true")
     assert res.status_code == 200
-    body = res.get_json()
+    body = res.get_json()["items"]
 
     assert len(body) > 0, "Le filtre ne doit pas renvoyer une liste vide ici"
     for todo in body:
@@ -86,7 +86,7 @@ def test_filter_completed_true_returns_only_completed(client):
 def test_filter_completed_false_returns_only_incomplete(client):
     res = client.get("/api/todos?completed=false")
     assert res.status_code == 200
-    body = res.get_json()
+    body = res.get_json()["items"]
 
     for todo in body:
         assert todo["completed"] is False, (
@@ -108,7 +108,7 @@ def test_stats_keys_and_types(client):
 
 
 def test_stats_matches_todo_list(client):
-    todos = client.get("/api/todos").get_json()
+    todos = client.get("/api/todos").get_json()["items"]
     total = len(todos)
     completed = sum(1 for t in todos if t["completed"])
     pending = total - completed
@@ -129,7 +129,7 @@ def test_stats_completion_rate_updates_after_toggle(client):
 
     client.patch(f"/api/todos/{todo_id}", json={"completed": True})
 
-    todos = client.get("/api/todos").get_json()
+    todos = client.get("/api/todos").get_json()["items"]
     total = len(todos)
     completed = sum(1 for t in todos if t["completed"])
     expected_rate = round(completed / total * 100, 1) if total else 0.0
@@ -247,7 +247,7 @@ def test_filter_priority_returns_only_matching(client):
 
     res = client.get("/api/todos?priority=high")
     assert res.status_code == 200
-    body = res.get_json()
+    body = res.get_json()["items"]
 
     assert len(body) > 0
     for todo in body:
@@ -272,7 +272,7 @@ def test_filter_priority_and_completed_combined(client):
 
     res = client.get("/api/todos?priority=high&completed=false")
     assert res.status_code == 200
-    body = res.get_json()
+    body = res.get_json()["items"]
 
     ids = [t["id"] for t in body]
     assert todo_id in ids
@@ -294,7 +294,7 @@ def test_priority_present_in_all_todo_responses(client):
     patch_res = client.patch(f"/api/todos/{todo_id}", json={"completed": True})
     assert "priority" in patch_res.get_json()
 
-    for todo in client.get("/api/todos").get_json():
+    for todo in client.get("/api/todos").get_json()["items"]:
         assert "priority" in todo
 
 
@@ -306,5 +306,60 @@ def test_delete_todo(client):
     assert delete_res.status_code == 204
 
     get_res = client.get("/api/todos")
-    ids = [t["id"] for t in get_res.get_json()]
+    ids = [t["id"] for t in get_res.get_json()["items"]]
     assert todo_id not in ids
+
+
+def test_pagination_default_returns_envelope_with_all_items(client):
+    res = client.get("/api/todos")
+    assert res.status_code == 200
+    body = res.get_json()
+
+    assert set(body.keys()) == {"items", "total", "next_offset"}
+    assert body["total"] == len(app_module.todos)
+    assert len(body["items"]) == len(app_module.todos)
+    assert body["next_offset"] is None
+
+
+def test_pagination_limit_restricts_page_size(client):
+    res = client.get("/api/todos?limit=2")
+    assert res.status_code == 200
+    body = res.get_json()
+
+    assert len(body["items"]) == 2
+    assert body["total"] == len(app_module.todos)
+    assert body["next_offset"] == 2
+
+
+def test_pagination_limit_above_max_returns_400(client):
+    res = client.get("/api/todos?limit=201")
+    assert res.status_code == 400
+
+
+def test_pagination_negative_offset_returns_400(client):
+    res = client.get("/api/todos?offset=-1")
+    assert res.status_code == 400
+
+
+def test_pagination_last_page_has_null_next_offset(client):
+    total = len(app_module.todos)
+
+    res = client.get(f"/api/todos?limit=1&offset={total - 1}")
+    assert res.status_code == 200
+    body = res.get_json()
+
+    assert len(body["items"]) == 1
+    assert body["next_offset"] is None
+
+
+def test_pagination_combined_with_completed_filter(client):
+    res = client.get("/api/todos?completed=false&limit=1")
+    assert res.status_code == 200
+    body = res.get_json()
+
+    expected_total = sum(1 for t in app_module.todos if t["completed"] is False)
+
+    assert body["total"] == expected_total
+    assert len(body["items"]) == 1
+    for todo in body["items"]:
+        assert todo["completed"] is False
